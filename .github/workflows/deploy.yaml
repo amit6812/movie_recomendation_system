@@ -22,24 +22,26 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
             set -e
-
-            cd /home/ubuntu || exit 1
-
+            cd /home/ubuntu
+            
             if [ ! -d "movie_recomendation_system" ]; then
               git clone https://github.com/amit6812/movie_recomendation_system.git
             fi
 
             cd movie_recomendation_system
             git pull origin main
+            # Agar LFS files nahi aa rahi toh niche wali line uncomment karein
+            # git lfs pull 
 
-            docker stop movie-container || true
-            docker rm movie-container || true
-            docker rmi movie-app || true
+            sudo docker stop movie-container || true
+            sudo docker rm movie-container || true
+            sudo docker rmi movie-app || true
 
-            docker build -t movie-app .
+            sudo docker build -t movie-app .
 
-            docker run -d \
+            sudo docker run -d \
               --name movie-container \
               -p 8501:8501 \
+              -p 8080:8080 \
               movie-app
           EOF
