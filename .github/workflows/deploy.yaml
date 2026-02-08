@@ -9,36 +9,37 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: check out code
-        uses: actions/checkout@v3
-
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@master
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ec2-user
-          key: ${{ secrets.EC2_SSH_KEY }}
+          ssh-private-key: |
+            ${{ secrets.EC2_SSH_KEY }}
 
-          
-          script: |
-            # Folder mein jana ya clone karna
-            cd /home/ubuntu/movie_recomendation_system || (cd /home/ubuntu && git clone https://github.com/amit6812/movie_recomendation_system.git && cd movie_recomendation_system)
-            
-            # Latest code pull karna
+      - name: Deploy to EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
+            set -e
+
+            cd /home/ubuntu || exit 1
+
+            if [ ! -d "movie_recomendation_system" ]; then
+              git clone https://github.com/amit6812/movie_recomendation_system.git
+            fi
+
+            cd movie_recomendation_system
             git pull origin main
 
-            # Purane containers ko rokna aur hatana
-            sudo docker stop movie-container || true
-            sudo docker rm movie-container || true
-            sudo docker rmi movie-app || true
+            docker stop movie-container || true
+            docker rm movie-container || true
+            docker rmi movie-app || true
 
-            # New Docker image build
-            sudo docker build -t movie-app .
+            docker build -t movie-app .
 
-            # Container run (Sirf ports ke sath)
-            sudo docker run -d \
+            docker run -d \
               --name movie-container \
               -p 8501:8501 \
-              -p 8080:8080 \
               movie-app
+          EOF
