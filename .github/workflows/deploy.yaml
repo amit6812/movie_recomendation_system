@@ -9,12 +9,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+      - name: check out code
+        uses: actions/checkout@v3
+
       - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
+          username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
+
+          
           script: |
             # Folder mein jana ya clone karna
             cd /home/ubuntu/movie_recomendation_system || (cd /home/ubuntu && git clone https://github.com/amit6812/movie_recomendation_system.git && cd movie_recomendation_system)
@@ -27,10 +33,10 @@ jobs:
             sudo docker rm movie-container || true
             sudo docker rmi movie-app || true
 
-            # Naya image build karna
+            # New Docker image build
             sudo docker build -t movie-app .
 
-            # Container run karna (Sirf ports ke sath)
+            # Container run (Sirf ports ke sath)
             sudo docker run -d \
               --name movie-container \
               -p 8501:8501 \
