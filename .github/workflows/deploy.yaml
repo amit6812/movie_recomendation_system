@@ -30,7 +30,7 @@ jobs:
 
             cd movie_recomendation_system
             git pull origin main
-            # Agar LFS files nahi aa rahi toh niche wali line uncomment karein
+            # Agar LFS files nahi aa rahi toh niche wali line uncomment kare
             # git lfs pull 
 
             sudo docker stop movie-container || true
