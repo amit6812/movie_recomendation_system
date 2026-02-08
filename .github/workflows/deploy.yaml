@@ -13,24 +13,26 @@ jobs:
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }} # Ensure this matches your GitHub Secret name
+          username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Folder check aur navigation
+            # Folder mein jana ya clone karna
             cd /home/ubuntu/movie_recomendation_system || (cd /home/ubuntu && git clone https://github.com/amit6812/movie_recomendation_system.git && cd movie_recomendation_system)
             
+            # Latest code pull karna
             git pull origin main
 
-            # Purane containers ko saaf karna
+            # Purane containers ko rokna aur hatana
             sudo docker stop movie-container || true
             sudo docker rm movie-container || true
             sudo docker rmi movie-app || true
 
-            # Naya image build aur run (Dono ports 8501 aur 8000 ke sath)
+            # Naya image build karna
             sudo docker build -t movie-app .
+
+            # Container run karna (Sirf ports ke sath)
             sudo docker run -d \
               --name movie-container \
               -p 8501:8501 \
-              -p 8080:8080\
-              -e TMDB_API_KEY=${{ secrets.TMDB_API_KEY }} \
+              -p 8080:8080 \
               movie-app
